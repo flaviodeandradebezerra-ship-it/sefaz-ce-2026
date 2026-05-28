@@ -628,7 +628,6 @@ function ResultadoFinal({simResp, onReiniciar, onGuia, historico=[]}) {
 //  COMPONENTE PRINCIPAL
 // ════════════════════════════════════════════════════════
 export default function App() {
-  const [logado, setLogado] = useState(false);
   const [modo, setModo] = useState("guia");
   const [tab, setTab] = useState(0);
   const [filtDisc, setFiltDisc] = useState("Todas");
@@ -705,14 +704,10 @@ export default function App() {
         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
           <button onClick={()=>setModo("guia")} style={{padding:"8px 14px",borderRadius:6,border:`1px solid ${modo==="guia"?C.gold:C.border}`,background:modo==="guia"?C.gold+"22":"transparent",color:modo==="guia"?C.gold:C.muted,cursor:"pointer",fontSize:12,fontWeight:700}}>📋 Guia</button>
           <button onClick={iniciarSim} style={{padding:"8px 14px",borderRadius:6,border:`1px solid ${modo==="simulado"?C.gold:C.border}`,background:modo==="simulado"?C.gold+"22":"transparent",color:modo==="simulado"?C.gold:C.muted,cursor:"pointer",fontSize:12,fontWeight:700}}>🎯 Simulado</button>
-          <button onClick={()=>setLogado(false)} title="Sair da plataforma" style={{padding:"8px 12px",borderRadius:6,border:`1px solid ${C.border}`,background:"transparent",color:C.muted,cursor:"pointer",fontSize:12}}>🚪 Sair</button>
         </div>
       </div>
     </div>
   );
-
-  // ── TELA DE LOGIN ────────────────────────────────────
-  if (!logado) return <TelaLogin onLogin={() => setLogado(true)} />;
 
   // ════════════════════════════════════════════════════
   //  RESULTADO

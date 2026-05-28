@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 // ═══════════════════════════════════════════════════════
 //  SEFAZ/CE 2026 — PLATAFORMA COMPLETA DE ESTUDOS
-//  Guia Estratégico + Banco 50Q + Simulado Interativo
+//  Login + Guia Estratégico + Banco 50Q + Simulado + Revisão
 //  Banca: FCC | Cargo: Auditor-Fiscal da Fazenda Estadual
 // ═══════════════════════════════════════════════════════
 
@@ -263,6 +263,108 @@ const SUGESTOES = {
   "Finanças Públicas":"Revise as funções de Musgrave (alocativa, distributiva, estabilizadora), bens públicos, externalidades e a diferença entre resultado primário e nominal. Estude tributação e equidade.",
 };
 
+
+// ─── TELA DE LOGIN ────────────────────────────────────
+function TelaLogin({ onLogin }) {
+  const [login, setLogin] = useState("");
+  const [senha, setSenha] = useState("");
+  const [erro, setErro] = useState("");
+  const [showSenha, setShowSenha] = useState(false);
+  const [tentativas, setTentativas] = useState(0);
+  const [shake, setShake] = useState(false);
+
+  const handleLogin = () => {
+    if (login === CREDS.login && senha === CREDS.senha) {
+      onLogin();
+    } else {
+      setTentativas(t => t + 1);
+      setErro("Login ou senha incorretos. Tente novamente.");
+      setShake(true);
+      setTimeout(() => setShake(false), 600);
+      setSenha("");
+    }
+  };
+
+  const handleKey = (e) => { if (e.key === "Enter") handleLogin(); };
+
+  return (
+    <div style={{ background: "radial-gradient(ellipse at 50% 0%, #0d1b33 0%, #080e1a 70%)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: "Georgia,serif" }}>
+      <style>{`
+        @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)} 40%{transform:translateX(10px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+        @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
+        input::placeholder{color:#64748b}
+      `}</style>
+
+      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 420 }}>
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <div style={{ width: 76, height: 76, background: "linear-gradient(135deg,#c8a951,#f0d080)", borderRadius: 18, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, margin: "0 auto 14px", boxShadow: "0 8px 32px rgba(200,169,81,0.35)" }}>🏛️</div>
+          <h1 style={{ margin: "0 0 4px", fontSize: 22, fontWeight: 700, color: "#f0d080" }}>SEFAZ/CE 2026</h1>
+          <p style={{ margin: 0, fontSize: 13, color: "#64748b" }}>Plataforma de Estudos • Auditor-Fiscal • FCC</p>
+          <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 10 }}>
+            {["🎯 50 Questões", "📊 Simulado", "📋 Guia Completo"].map(b => (
+              <span key={b} style={{ background: "#c8a95122", border: "1px solid #c8a951", borderRadius: 4, padding: "2px 8px", fontSize: 11, color: "#c8a951", fontWeight: 700 }}>{b}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Card */}
+        <div style={{ background: "#0f1829", border: `1px solid ${shake ? "#ef4444" : "#1b2c44"}`, borderRadius: 16, padding: "30px 26px", boxShadow: "0 24px 64px rgba(0,0,0,0.6)", transition: "border-color 0.3s", animation: shake ? "shake 0.6s ease" : "none" }}>
+          <h2 style={{ margin: "0 0 22px", fontSize: 17, color: "#e2e8f0", textAlign: "center", fontWeight: 600 }}>Acesso à Plataforma</h2>
+
+          {/* Login */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ display: "block", fontSize: 11, color: "#64748b", marginBottom: 5, letterSpacing: 0.8, textTransform: "uppercase" }}>Login</label>
+            <div style={{ position: "relative" }}>
+              <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 15 }}>👤</span>
+              <input value={login} onChange={e => { setLogin(e.target.value); setErro(""); }} onKeyDown={handleKey} placeholder="Digite seu login" autoComplete="username"
+                style={{ width: "100%", background: "#162035", border: `1px solid ${erro ? "#ef4444" : "#1b2c44"}`, borderRadius: 8, padding: "11px 11px 11px 38px", color: "#e2e8f0", fontSize: 14, outline: "none", fontFamily: "Georgia,serif", boxSizing: "border-box" }}
+                onFocus={e => e.target.style.borderColor = "#c8a951"} onBlur={e => e.target.style.borderColor = erro ? "#ef4444" : "#1b2c44"} />
+            </div>
+          </div>
+
+          {/* Senha */}
+          <div style={{ marginBottom: 22 }}>
+            <label style={{ display: "block", fontSize: 11, color: "#64748b", marginBottom: 5, letterSpacing: 0.8, textTransform: "uppercase" }}>Senha</label>
+            <div style={{ position: "relative" }}>
+              <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 15 }}>🔒</span>
+              <input type={showSenha ? "text" : "password"} value={senha} onChange={e => { setSenha(e.target.value); setErro(""); }} onKeyDown={handleKey} placeholder="Digite sua senha" autoComplete="current-password"
+                style={{ width: "100%", background: "#162035", border: `1px solid ${erro ? "#ef4444" : "#1b2c44"}`, borderRadius: 8, padding: "11px 42px 11px 38px", color: "#e2e8f0", fontSize: 14, outline: "none", fontFamily: "Georgia,serif", boxSizing: "border-box" }}
+                onFocus={e => e.target.style.borderColor = "#c8a951"} onBlur={e => e.target.style.borderColor = erro ? "#ef4444" : "#1b2c44"} />
+              <button onClick={() => setShowSenha(s => !s)} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", cursor: "pointer", fontSize: 15, padding: 4 }}>
+                {showSenha ? "🙈" : "👁️"}
+              </button>
+            </div>
+          </div>
+
+          {/* Erro */}
+          {erro && (
+            <div style={{ background: "#dc262218", border: "1px solid #dc2626", borderRadius: 8, padding: "9px 12px", marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+              <span>⚠️</span>
+              <span style={{ fontSize: 13, color: "#ef4444" }}>{erro}</span>
+            </div>
+          )}
+
+          {/* Botão */}
+          <button onClick={handleLogin} style={{ width: "100%", background: "linear-gradient(135deg,#c8a951,#f0d080)", color: "#000", border: "none", borderRadius: 8, padding: "13px", cursor: "pointer", fontWeight: 700, fontSize: 15, fontFamily: "Georgia,serif", boxShadow: "0 4px 16px rgba(200,169,81,0.3)", transition: "all 0.2s" }}
+            onMouseOver={e => { e.target.style.transform = "translateY(-1px)"; e.target.style.boxShadow = "0 6px 22px rgba(200,169,81,0.45)"; }}
+            onMouseOut={e => { e.target.style.transform = "translateY(0)"; e.target.style.boxShadow = "0 4px 16px rgba(200,169,81,0.3)"; }}>
+            🚀 Acessar Plataforma
+          </button>
+
+          {tentativas >= 2 && (
+            <div style={{ marginTop: 14, padding: "9px 12px", background: "#162035", border: "1px solid #1b2c44", borderRadius: 8, textAlign: "center" }}>
+              <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>💡 <strong style={{ color: "#c8a951" }}>Dica:</strong> Login: <code style={{ color: "#e2e8f0" }}>concurseiro</code> • Senha: <code style={{ color: "#e2e8f0" }}>aprovado</code></p>
+            </div>
+          )}
+        </div>
+
+        <p style={{ textAlign: "center", marginTop: 18, color: "#64748b", fontSize: 11 }}>🔒 SEFAZ/CE Edital nº 01/2026 • Banca FCC • Provas: 01-02/08/2026</p>
+      </div>
+    </div>
+  );
+}
+
 function Bdg({children,cor=C.gold,bg}){return <span style={{background:bg||cor+"22",border:`1px solid ${cor}`,borderRadius:4,padding:"2px 8px",fontSize:11,color:cor,fontWeight:700,whiteSpace:"nowrap"}}>{children}</span>;}
 function fmt(s){const m=Math.floor(s/60),sec=s%60;return `${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;}
 
@@ -499,6 +601,7 @@ function ResultadoFinal({simResp, onReiniciar, onGuia}) {
 //  COMPONENTE PRINCIPAL
 // ════════════════════════════════════════════════════════
 export default function App() {
+  const [logado, setLogado] = useState(false);
   const [modo, setModo] = useState("guia");
   const [tab, setTab] = useState(0);
   const [filtDisc, setFiltDisc] = useState("Todas");
@@ -566,6 +669,7 @@ export default function App() {
         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
           <button onClick={()=>setModo("guia")} style={{padding:"8px 14px",borderRadius:6,border:`1px solid ${modo==="guia"?C.gold:C.border}`,background:modo==="guia"?C.gold+"22":"transparent",color:modo==="guia"?C.gold:C.muted,cursor:"pointer",fontSize:12,fontWeight:700}}>📋 Guia</button>
           <button onClick={iniciarSim} style={{padding:"8px 14px",borderRadius:6,border:`1px solid ${modo==="simulado"?C.gold:C.border}`,background:modo==="simulado"?C.gold+"22":"transparent",color:modo==="simulado"?C.gold:C.muted,cursor:"pointer",fontSize:12,fontWeight:700}}>🎯 Simulado</button>
+          <button onClick={()=>setLogado(false)} title="Sair da plataforma" style={{padding:"8px 12px",borderRadius:6,border:`1px solid ${C.border}`,background:"transparent",color:C.muted,cursor:"pointer",fontSize:12}}>🚪 Sair</button>
         </div>
       </div>
     </div>

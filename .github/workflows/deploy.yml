@@ -11,23 +11,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - run: npm install
-
-      - run: npm run build
-
       - run: npm install -g vercel@latest
 
-      - name: Deploy to Vercel (prod, force project name)
+      - name: Deploy root to Vercel (usa index.html standalone + vercel.json)
         run: |
-          vercel deploy dist/ \
+          vercel deploy . \
             --prod \
             --yes \
             --name sefaz-ce-2026 \
-            --token ${{ secrets.VERCEL_TOKEN }} \
-            2>&1 | tee /tmp/vercel_output.txt
-          cat /tmp/vercel_output.txt
-          grep -oP 'https://[^\s]+vercel\.app' /tmp/vercel_output.txt | head -3 || true
+            --token ${{ secrets.VERCEL_TOKEN }}

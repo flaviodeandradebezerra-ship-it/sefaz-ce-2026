@@ -13,27 +13,31 @@ jobs:
 
       - run: npm install -g vercel@latest
 
-      - name: Get Vercel project info and deploy
+      - name: Deploy and capture URL
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          echo "=== Projetos na conta Vercel ==="
+          echo "--- PROJETOS VERCEL ---"
           curl -s -H "Authorization: Bearer $VERCEL_TOKEN" \
-            "https://api.vercel.com/v9/projects?limit=20" | \
-            python3 -c "
+            "https://api.vercel.com/v9/projects?limit=20" > /tmp/projects.json
+          cat /tmp/projects.json | python3 -c "
           import sys,json
           d=json.load(sys.stdin)
           for p in d.get('projects',[]):
-              print(p['id'], p['name'], [a.get('value','') for a in p.get('alias',[])][:2])
-          " || echo "API call failed"
-          
-          echo "=== Fazendo deploy ==="
-          vercel deploy . \
-            --prod \
-            --yes \
-            --token $VERCEL_TOKEN \
-            2>&1 | tee /tmp/deploy_out.txt
-          
-          echo "=== URL do deploy ==="
-          cat /tmp/deploy_out.txt
-          grep -oE 'https://[a-zA-Z0-9._-]+\.vercel\.app' /tmp/deploy_out.txt | head -5
+              aliases=[a.get('value','') for a in p.get('alias',[])]
+              print(f'PROJECT: {p[\"id\"]} | NAME: {p[\"name\"]} | ALIASES: {aliases}')
+          " || cat /tmp/projects.json
+
+          echo "--- DEPLOY ---"
+          vercel deploy . --prod --yes --token $VERCEL_TOKEN 2>&1 | tee /tmp/deploy.txt || true
+          echo "--- DEPLOY OUTPUT ---"
+          cat /tmp/deploy.txt
+          echo "--- URLS ENCONTRADAS ---"
+          grep -oE 'https://[a-zA-Z0-9._-]+' /tmp/deploy.txt || echo "nenhuma URL"
+
+      - name: Upload deploy info
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vercel-deploy-info
+          path: /tmp/deploy.txt

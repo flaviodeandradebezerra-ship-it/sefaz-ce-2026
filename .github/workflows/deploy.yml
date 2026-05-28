@@ -11,14 +11,52 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: npm install -g vercel@latest
-
-      - name: Deploy static files to Vercel
+      - name: Fix Vercel project and deploy
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
+          echo "=== LISTANDO TODOS OS PROJETOS VERCEL ==="
+          PROJECTS=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v9/projects?limit=50")
+          echo "$PROJECTS" | python3 -c "
+          import sys,json
+          d=json.load(sys.stdin)
+          for p in d.get('projects',[]):
+              aliases=[a.get('value','') for a in p.get('alias',[])]
+              print(f'ID={p[\"id\"]} NAME={p[\"name\"]} ALIASES={aliases}')
+          "
+
+          echo "=== ENCONTRANDO PROJETO COM sefaz-ce-2026.vercel.app ==="
+          PROJECT_ID=$(echo "$PROJECTS" | python3 -c "
+          import sys,json
+          d=json.load(sys.stdin)
+          for p in d.get('projects',[]):
+              aliases=[a.get('value','') for a in p.get('alias',[])]
+              name=p.get('name','')
+              if 'sefaz-ce-2026.vercel.app' in aliases or 'sefaz-ce-2026' in name:
+                  print(p['id'])
+                  break
+          ")
+          echo "Project ID encontrado: $PROJECT_ID"
+
+          echo "=== DELETANDO PROJETO ANTIGO ==="
+          if [ -n "$PROJECT_ID" ]; then
+            curl -s -X DELETE \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v9/projects/$PROJECT_ID"
+            echo "Projeto $PROJECT_ID deletado"
+            sleep 3
+          fi
+
+          echo "=== INSTALANDO VERCEL CLI ==="
+          npm install -g vercel@latest
+
+          echo "=== NOVO DEPLOY ==="
           vercel deploy . \
             --prod \
             --yes \
             --token $VERCEL_TOKEN \
-            2>&1
+            2>&1 | tee /tmp/deploy.txt
+          
+          echo "=== RESULTADO ==="
+          cat /tmp/deploy.txt

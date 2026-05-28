@@ -453,7 +453,7 @@ function FeedbackQuestao({q, resposta, onProxima, isUltima, onFinalizar}) {
 }
 
 // ─── COMPONENTE RESULTADO FINAL ───────────────────────
-function ResultadoFinal({simResp, onReiniciar, onGuia}) {
+function ResultadoFinal({simResp, onReiniciar, onGuia, historico=[]}) {
   const total = SIM_QS.length;
   let ac=0, er=0, br=0;
   const pd = {};
@@ -513,6 +513,33 @@ function ResultadoFinal({simResp, onReiniciar, onGuia}) {
             </div>
           </div>
         </div>
+
+        {/* Histórico de simulados */}
+        {historico.length > 1 && (
+          <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"16px",marginBottom:20}}>
+            <h3 style={{color:C.gold,margin:"0 0 12px",fontSize:15}}>📈 Evolução dos Simulados</h3>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              {historico.map((h,i)=>(
+                <div key={i} style={{background:C.card2,border:`1px solid ${h.pct>=60?C.green:C.red}`,borderRadius:8,padding:"10px 14px",textAlign:"center",minWidth:70}}>
+                  <div style={{fontSize:10,color:C.muted,marginBottom:2}}>Simulado {i+1}</div>
+                  <div style={{fontSize:22,fontWeight:700,color:h.pct>=60?C.green:C.red}}>{h.pct}%</div>
+                  <div style={{fontSize:10,color:C.muted}}>{h.ac}/{h.total} acertos</div>
+                  {h.data && <div style={{fontSize:9,color:C.muted,marginTop:2}}>{h.data}</div>}
+                </div>
+              ))}
+              {historico.length >= 2 && (
+                <div style={{display:"flex",alignItems:"center",padding:"0 10px",color:C.muted,fontSize:12}}>
+                  {historico[historico.length-1].pct > historico[0].pct
+                    ? <span style={{color:C.green}}>📈 +{historico[historico.length-1].pct - historico[0].pct}pp de melhora!</span>
+                    : historico[historico.length-1].pct < historico[0].pct
+                    ? <span style={{color:C.red}}>📉 Revise os temas errados</span>
+                    : <span>➡️ Desempenho estável</span>
+                  }
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Desempenho por disciplina */}
         <h3 style={{color:C.gold,margin:"0 0 12px",fontSize:16}}>📊 Desempenho por Disciplina</h3>
@@ -620,6 +647,7 @@ export default function App() {
   const [respostaAtual, setRespostaAtual] = useState(null);
   const [tempo, setTempo] = useState(5400); // 1h30min
   const [simAtiva, setSimAtiva] = useState(false);
+  const [historico, setHistorico] = useState([]);
   const timerRef = useRef(null);
 
   useEffect(() => {
@@ -636,7 +664,15 @@ export default function App() {
     setSimResp({}); setSimQ(0); setSimFeedback(false);
     setRespostaAtual(null); setTempo(5400); setSimAtiva(true); setModo("simulado");
   };
-  const finalizarSim = () => { setSimAtiva(false); clearInterval(timerRef.current); setModo("resultado"); };
+  const finalizarSim = () => {
+    setSimAtiva(false); clearInterval(timerRef.current);
+    const total = SIM_QS.length;
+    let ac = 0;
+    SIM_QS.forEach(q => { if (simResp[q.id] === q.gab) ac++; });
+    const pct = Math.round((ac / total) * 100);
+    setHistorico(h => [...h, { ac, total, pct, data: new Date().toLocaleDateString('pt-BR') }]);
+    setModo("resultado");
+  };
 
   const confirmarResposta = () => {
     if (!respostaAtual) return;
@@ -675,10 +711,13 @@ export default function App() {
     </div>
   );
 
+  // ── TELA DE LOGIN ────────────────────────────────────
+  if (!logado) return <TelaLogin onLogin={() => setLogado(true)} />;
+
   // ════════════════════════════════════════════════════
   //  RESULTADO
   // ════════════════════════════════════════════════════
-  if (modo === "resultado") return <ResultadoFinal simResp={simResp} onReiniciar={iniciarSim} onGuia={()=>setModo("guia")} />;
+  if (modo === "resultado") return <ResultadoFinal simResp={simResp} onReiniciar={iniciarSim} onGuia={()=>setModo("guia")} historico={historico} />;
 
   // ════════════════════════════════════════════════════
   //  SIMULADO INTERATIVO
